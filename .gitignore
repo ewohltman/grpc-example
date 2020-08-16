@@ -1,0 +1,9 @@
+# Project-specific files
+.idea/
+
+# Test results
+coverage.out
+
+# Binary
+build/package/grpc-client/grpc-client
+build/package/grpc-server/grpc-server

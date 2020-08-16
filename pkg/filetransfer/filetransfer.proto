@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package = ".;filetransfer";
+
+package filetransfer;
+
+// Interface exported by the server.
+service FileTransfer {
+  rpc Upload(stream File) returns (UploadResponse) {}
+}
+
+message File {
+  string name = 1;
+  bytes content = 2;
+}
+
+message UploadResponse {
+  int64 bytesWritten = 1;
+}
