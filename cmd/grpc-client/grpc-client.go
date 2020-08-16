@@ -2,36 +2,36 @@ package main
 
 import (
 	"context"
-	"io"
-	"log"
 	"os"
 
-	"google.golang.org/grpc"
+	"github.com/sirupsen/logrus"
 
 	"github.com/ewohltman/grpc-example/pkg/filetransfer"
-	"github.com/ewohltman/grpc-example/pkg/grpcClient"
 )
 
 const serverAddress = "localhost:8080"
 
-func handleClose(closer io.Closer) {
-	err := closer.Close()
-	if err != nil {
-		log.Printf("Error: %s\n", err)
-	}
-}
-
 func main() {
-	conn, err := grpc.Dial(serverAddress, grpc.WithInsecure())
+	log := logrus.NewEntry(logrus.New())
+	log.Logger.SetFormatter(&logrus.TextFormatter{FullTimestamp: true})
+
+	if len(os.Args) <= 1 {
+		log.Fatal("File name must be provided")
+	}
+
+	log.Info("Starting up grpc-client")
+
+	client, err := filetransfer.NewClient(log, serverAddress)
 	if err != nil {
-		log.Fatalln(err)
+		log.WithError(err).Fatal("Error starting grpc-client")
 	}
 
-	defer handleClose(conn)
+	defer func() {
+		err := client.Close()
+		if err != nil {
+			log.WithError(err).Errorf("Error closing connection")
+		}
+	}()
 
-	client := &grpcClient.Client{
-		FileTransferClient: filetransfer.NewFileTransferClient(conn),
-	}
-
-	client.UploadReader(context.Background(), os.Stdin)
+	client.UploadReader(context.TODO(), os.Args[1], os.Stdin)
 }
